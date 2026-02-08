@@ -1,6 +1,8 @@
 # WeChat File Deduplicator
 
-微信文件去重工具（MacOS）。扫描 `file`/`attach`/`video` 目录，通过文件大小 + MD5 哈希识别重复，移动副本到隔离文件夹。
+> Agent Skill for deduplicating WeChat files on MacOS
+
+扫描 `file`/`attach`/`video` 目录，通过文件大小 + MD5 哈希识别重复，移动副本到隔离文件夹。
 
 ## Install SKill
 
