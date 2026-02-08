@@ -1,114 +1,59 @@
-# WeChat Document Deduplicator
+# WeChat File Deduplicator
 
-> A Claude Code Skill for finding and removing duplicate documents in WeChat folders
+微信文件去重工具（MacOS）。扫描 `file`/`attach`/`video` 目录，通过文件大小 + MD5 哈希识别重复，移动副本到隔离文件夹。
 
-微信文档去重工具 - 自动识别并清理微信产生的重复文档文件
-
-## Problem
-
-WeChat (微信) tends to create multiple copies of the same document when:
-- Files are forwarded multiple times
-- Files are saved from different chats
-- Sync issues between devices
-
-This results in files like:
-```
-document.pdf
-document(1).pdf
-document(2).pdf
-```
-
-These duplicates waste significant storage space.
-
-## Solution
-
-This skill scans your WeChat folder, identifies duplicate documents by **content hash** (not filename), and safely moves duplicates to a quarantine folder.
-
-### Key Features
-
-- **Content-based detection**: Uses MD5 hash to identify truly identical files
-- **Safe operation**: Moves files to quarantine instead of deleting
-- **Smart retention**: Keeps the oldest (original) file
-- **Detailed report**: Generates a markdown report of all actions
-
-## Installation
-
-### For Claude Code Users
+## Install SKill
 
 ```bash
-# Clone to your skills directory
-git clone https://github.com/rolandwong/wechat-dedup.git ~/.claude/skills/wechat-dedup
-```
-
-### Manual Installation
-
-```bash
-git clone https://github.com/rolandwong/wechat-dedup.git
-cd wechat-dedup
-python3 dedup.py
+git clone git@github.com:jerlinn/wechat-dedup.git ~/.claude/skills/wechat-dedup
 ```
 
 ## Usage
 
-### Via Claude Code
+**1. Via Skill** (Claude Code / Antigravity / Codex / Cursor)
 
-Just say:
-- `微信去重`
-- `清理微信重复文件`
-- `wechat dedup`
+打开任意文件夹，输入「微信去重」
 
-### Via Command Line
+**2. Direct Execution**
 
 ```bash
-python3 ~/.claude/skills/wechat-dedup/dedup.py
+python3 ~/.claude/skills/wechat-dedup/wechat-dedup/scripts/dedup.py
 ```
 
-## How It Works
+## Scan Targets
 
-1. **Scan**: Finds all PDF and Word documents in WeChat folder
-2. **Hash**: Groups files by size first (fast), then by MD5 hash (accurate)
-3. **Select**: Keeps the file with earliest creation time
-4. **Move**: Moves duplicates to `~/微信重复文件_待删除/`
-5. **Report**: Generates `去重报告.md` with full details
+| Directory | Type | Extensions |
+|-----------|------|------------|
+| `*/msg/file` | 文档 | .pdf, .doc, .docx |
+| `*/msg/attach` | 图片附件 | .dat, .jpg, .png, .gif |
+| `*/msg/video` | 视频 | .mp4, .mov, .avi |
 
-## Configuration
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| Scan Path | WeChat folder | Auto-detected on macOS |
-| File Types | PDF, DOC, DOCX | Can be extended |
-| Quarantine | `~/微信重复文件_待删除/` | 30-day holding period |
-| Keep Strategy | Oldest file | By creation time |
-
-## Requirements
-
-- Python 3.8+
-- macOS (for WeChat path detection)
-- No external dependencies
-
-## Safety
-
-- **No direct deletion**: Files are moved, not deleted
-- **Original paths recorded**: Full paths saved in report
-- **Recoverable**: Files can be restored from quarantine
-- **Preview mode**: Review before executing
+Base path: `~/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files`
 
 ## Algorithm
 
 Inspired by [fclones](https://github.com/pkolaczk/fclones) by Piotr Kołaczkowski:
 
-1. **Size grouping** (O(n)): Files with unique sizes can't be duplicates
-2. **Hash only when needed**: Only compute MD5 for size-matched files
+1. **Size grouping** (O(n)): Files with unique sizes cannot be duplicates
+2. **Hash on demand**: Only compute MD5 for size-matched files
 3. **Streaming hash**: Memory-efficient for large files
+4. **Minimum size filter**: Skip files < 10KB (thumbnails)
+
+Retention strategy: Keep the file with earliest creation time (`st_birthtime`).
+
+## Output
+
+| Item | Path |
+|------|------|
+| Quarantine | `~/微信重复文件_待删除/` |
+| Report | `~/微信重复文件_待删除/去重报告.md` |
+
+## Requirements
+
+- Python 3.8+
+- macOS
+- No external dependencies
 
 ## License
 
 MIT
-
-## Author
-
-Created by Roland Wong with Claude Code
-
----
-
-*Part of the [awesome-claude-skills](https://github.com/anthropics/awesome-claude-skills) ecosystem*
